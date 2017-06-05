@@ -13,6 +13,8 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 
+import java.text.DateFormat;
+
 public class CrimeFragment extends Fragment{
     private Crime mCrime;
     private EditText mTitleField;
@@ -50,9 +52,14 @@ public class CrimeFragment extends Fragment{
             }
         });
 
-        // Установка даты на кнопку и блокирование нажатия
+        // Установка даты на кнопку
         mDateButton = (Button)v.findViewById(R.id.crime_date);
-        mDateButton.setText(mCrime.getDate().toString());
+
+        // Форматирование даты
+        DateFormat df = DateFormat.getDateInstance(DateFormat.LONG);
+        mDateButton.setText(df.format(mCrime.getDate()));
+
+        // Блокирование нажатия
         mDateButton.setEnabled(false);
 
         // Назначение слушателя для изменений CheckBox
