@@ -56,7 +56,7 @@ public class CrimeFragment extends Fragment{
         mDateButton = (Button)v.findViewById(R.id.crime_date);
 
         // Форматирование даты
-        DateFormat df = DateFormat.getDateInstance(DateFormat.LONG);
+        DateFormat df = DateFormat.getDateInstance(DateFormat.FULL);
         mDateButton.setText(df.format(mCrime.getDate()));
 
         // Блокирование нажатия
