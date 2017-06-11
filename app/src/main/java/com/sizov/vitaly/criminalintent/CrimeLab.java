@@ -25,16 +25,17 @@ public class CrimeLab {
         for (int i = 0; i < 100; i++) {
             Crime crime = new Crime();
             crime.setTitle("Crime #" + i);
-            crime.setSolved(i % 2 == 0); // Для кадого второго объекта
+            crime.setSolved(i % 2 == 0); // Для каждого второго объекта
             mCrimes.add(crime);
         }
     }
 
-    // Создание списка List объекта Crime
+    // Возврат List
     public List<Crime> getCrimes() {
         return mCrimes;
     }
 
+    // Возвращение объекта Crime с заданым идентификатором
     public Crime getCrime(UUID id) {
         for (Crime crime : mCrimes) {
             if (crime.getId().equals(id)) {
