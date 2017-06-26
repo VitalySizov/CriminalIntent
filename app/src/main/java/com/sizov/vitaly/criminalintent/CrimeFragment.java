@@ -15,21 +15,23 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.text.format.DateFormat;
 
-import java.text.DateFormat;
 import java.util.Date;
 import java.util.UUID;
 
-public class CrimeFragment extends Fragment{
+public class CrimeFragment extends Fragment {
 
     private static final String ARG_CRIME_ID = "crime_id";
     private static final String DIALOG_DATE = "DialogDate";
-
+    private static final String DIALOG_TIME = "DialogTime";
     private static final int REQUEST_DATE = 0;
+    private static final int REQUEST_TIME = 1;
 
     private Crime mCrime;
     private EditText mTitleField;
     private Button mDateButton;
+    private Button mTimeButton;
     private CheckBox mSolvedCheckBox;
 
     public static CrimeFragment newInstance(UUID crimeId) {
@@ -40,7 +42,6 @@ public class CrimeFragment extends Fragment{
         fragment.setArguments(args);
         return fragment;
     }
-
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,7 +58,7 @@ public class CrimeFragment extends Fragment{
     public View onCreateView(LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime, container, false);
 
-        mTitleField = (EditText)v.findViewById(R.id.crime_title);
+        mTitleField = (EditText) v.findViewById(R.id.crime_title);
         mTitleField.setText(mCrime.getTitle());
         mTitleField.addTextChangedListener(new TextWatcher() {
             @Override
@@ -78,10 +79,7 @@ public class CrimeFragment extends Fragment{
         });
 
         // Установка даты на кнопку
-        mDateButton = (Button)v.findViewById(R.id.crime_date);
-
-        // Форматирование даты
-        DateFormat df = DateFormat.getDateInstance(DateFormat.FULL);
+        mDateButton = (Button) v.findViewById(R.id.crime_date);
         updateDate();
 
         // Отображение DialogFragment по нажатию по кнопке
@@ -96,7 +94,7 @@ public class CrimeFragment extends Fragment{
         });
 
         // Назначение слушателя для изменений CheckBox
-        mSolvedCheckBox = (CheckBox)v.findViewById(R.id.crime_solved);
+        mSolvedCheckBox = (CheckBox) v.findViewById(R.id.crime_solved);
         mSolvedCheckBox.setChecked(mCrime.isSolved());
         mSolvedCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -106,7 +104,29 @@ public class CrimeFragment extends Fragment{
             }
         });
 
+        // Кнопка для установки времени преступления
+        mTimeButton = (Button) v.findViewById(R.id.crime_time);
+        updateTime();
+
+        mTimeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TimePickerFragment dialog = TimePickerFragment.newInstance(mCrime.getDate());
+                FragmentManager manager = getFragmentManager();
+                dialog.setTargetFragment(CrimeFragment.this, REQUEST_TIME);
+                dialog.show(manager, DIALOG_TIME);
+            }
+        });
+
         return v;
+    }
+
+    private void updateTime() {
+        mTimeButton.setText(DateFormat.format("h:mm a", mCrime.getDate()));
+    }
+
+    private void updateDate() {
+        mDateButton.setText(DateFormat.format("EEE, MMM d, yyyy", mCrime.getDate()));
     }
 
     // Реакция на получение данных от диалогового окна
@@ -116,14 +136,17 @@ public class CrimeFragment extends Fragment{
             return;
         }
 
-        if (requestCode == REQUEST_DATE) {
-            Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
-            mCrime.setDate(date);
-            updateDate();
+        Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
+        mCrime.setDate(date);
+
+        switch (requestCode) {
+            case REQUEST_DATE:
+                updateDate();
+                break;
+            case REQUEST_TIME:
+                updateTime();
+                break;
+            }
         }
     }
 
-    private void updateDate() {
-        mDateButton.setText(mCrime.getDate().toString());
-    }
-}
