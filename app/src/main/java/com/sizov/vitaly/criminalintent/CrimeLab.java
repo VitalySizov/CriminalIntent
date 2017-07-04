@@ -9,7 +9,7 @@ import java.util.UUID;
 // Синглетный класс
 public class CrimeLab {
     private static CrimeLab sCrimeLab;
-
+    private static final String TAG = "CrimeLab";
     private List<Crime> mCrimes;
 
     public static CrimeLab get(Context context) {
@@ -33,6 +33,11 @@ public class CrimeLab {
     // Добавление нового объекта в список
     public void addCrime(Crime c) {
         mCrimes.add(c);
+    }
+
+    // Удаление объекта из списка
+    public void deleteCrime(Crime c) {
+        mCrimes.remove(c);
     }
 
     // Возврат List
