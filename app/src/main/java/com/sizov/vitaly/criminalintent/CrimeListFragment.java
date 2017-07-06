@@ -13,6 +13,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
@@ -22,6 +23,8 @@ import java.util.List;
 public class CrimeListFragment extends Fragment {
 
     private RecyclerView mCrimeRecyclerView;
+    private TextView mCrimeEmptyTextView;
+    private Button mCrimeAddButton;
     private CrimeAdapter mAdapter;
     private boolean mSubtitleVisible;
     private static final String TAG = "CrimeListFragment";
@@ -43,6 +46,10 @@ public class CrimeListFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_crime_list, container, false);
         mCrimeRecyclerView = (RecyclerView)view.findViewById(R.id.crime_recycle_view);
         mCrimeRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        mCrimeEmptyTextView = (TextView)view.findViewById(R.id.empty_list);
+        mCrimeAddButton = (Button)view.findViewById(R.id.item_new_crime);
+
         updateUI(mCurrentPosition);
 
         if (savedInstanceState != null) {
@@ -68,7 +75,7 @@ public class CrimeListFragment extends Fragment {
 
     private void updateUI(int position) {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
-        List<Crime> crimes = crimeLab.getCrimes();
+        final List<Crime> crimes = crimeLab.getCrimes();
 
         if (mAdapter == null) {
             mAdapter = new CrimeAdapter(crimes);
@@ -76,6 +83,21 @@ public class CrimeListFragment extends Fragment {
         } else {
             //mAdapter.notifyItemChanged(position);
             mAdapter.notifyDataSetChanged(); // Обновление данных
+        }
+
+        // Отображение сообщения при отсутсвии преступлений
+        if (crimes.size() > 0) {
+            mCrimeEmptyTextView.setVisibility(View.INVISIBLE);
+            mCrimeAddButton.setVisibility(View.INVISIBLE);
+        } else {
+            mCrimeEmptyTextView.setVisibility(View.VISIBLE);
+            mCrimeAddButton.setVisibility(View.VISIBLE);
+            mCrimeAddButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    addCrime();
+                }
+            });
         }
     }
 
@@ -164,10 +186,7 @@ public class CrimeListFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_new_crime:
-                Crime crime = new Crime();
-                CrimeLab.get(getActivity()).addCrime(crime);
-                Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getId());
-                startActivity(intent);
+                addCrime();
                 return true;
             case R.id.menu_item_show_subtitle:
                 mSubtitleVisible = !mSubtitleVisible;
@@ -177,6 +196,13 @@ public class CrimeListFragment extends Fragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    private void addCrime() {
+        Crime crime = new Crime();
+        CrimeLab.get(getActivity()).addCrime(crime);
+        Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getId());
+        startActivity(intent);
     }
 
     // Назначение подзаголовка панели инструментов
