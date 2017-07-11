@@ -55,6 +55,14 @@ public class CrimeFragment extends Fragment {
         UUID crimeId = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
     }
+    // Запись обновлений
+    @Override
+    public void onPause() {
+        super.onPause();
+
+        CrimeLab.get(getActivity())
+                .updateCrime(mCrime);
+    }
 
     // Заполнение ресурса меню
     @Override
@@ -93,7 +101,6 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 mCrime.setTitle(s.toString());
-
             }
 
             @Override
@@ -170,7 +177,7 @@ public class CrimeFragment extends Fragment {
             case REQUEST_TIME:
                 updateTime();
                 break;
-            }
         }
     }
+}
 

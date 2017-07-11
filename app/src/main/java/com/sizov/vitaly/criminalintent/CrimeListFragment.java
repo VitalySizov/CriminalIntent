@@ -81,7 +81,7 @@ public class CrimeListFragment extends Fragment {
             mAdapter = new CrimeAdapter(crimes);
             mCrimeRecyclerView.setAdapter(mAdapter);
         } else {
-            //mAdapter.notifyItemChanged(position);
+            mAdapter.setCrimes(crimes);
             mAdapter.notifyDataSetChanged(); // Обновление данных
         }
 
@@ -163,6 +163,11 @@ public class CrimeListFragment extends Fragment {
         @Override
         public int getItemCount() {
             return mCrimes.size();
+        }
+
+        // Закрепление отображаемых данных
+        public void setCrimes(List<Crime> crimes) {
+            mCrimes = crimes;
         }
     }
 

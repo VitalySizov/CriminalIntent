@@ -11,7 +11,11 @@ public class Crime {
     private boolean mSolved;
 
     public Crime() {
-        mId = UUID.randomUUID(); // Генерирование уникального индификатора
+        this(UUID.randomUUID()); // Генерирование уникального индификатора
+    }
+
+    public Crime(UUID id) {
+        mId = id;
         mDate = new Date();
     }
 
