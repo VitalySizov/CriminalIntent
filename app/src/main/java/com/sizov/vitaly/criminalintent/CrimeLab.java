@@ -3,6 +3,7 @@ package com.sizov.vitaly.criminalintent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.CursorWrapper;
 import android.database.sqlite.SQLiteDatabase;
 
 import com.sizov.vitaly.criminalintent.database.CrimeBaseHelper;
@@ -42,8 +43,9 @@ public class CrimeLab {
     }
 
     // Удаление объекта из списка
-    public void deleteCrime(Crime c) {
-
+    public void deleteCrime(UUID crimeId) {
+        String uuidString = crimeId.toString();
+        mDataBase.delete(CrimeTable.NAME, CrimeTable.Cols.UUID + " =? ", new String[] {uuidString});
     }
 
     // Возврат List
