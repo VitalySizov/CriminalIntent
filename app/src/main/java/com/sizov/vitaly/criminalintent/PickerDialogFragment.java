@@ -15,6 +15,7 @@ import java.util.Date;
 public abstract class PickerDialogFragment extends DialogFragment {
     private static final String ARG_DATE = "date";
     public static final String EXTRA_DATE = "com.sizov.vitaly.criminalintent.date";
+    public static final String EXTRA_TIME = "com.sizov.vitaly.criminalintent.time";
 
     protected Calendar mCalendar;
 
@@ -56,6 +57,7 @@ public abstract class PickerDialogFragment extends DialogFragment {
 
         Intent intent = new Intent();
         intent.putExtra(EXTRA_DATE, date);
+        intent.putExtra(EXTRA_TIME, date);
 
         getTargetFragment().onActivityResult(getTargetRequestCode(), resultCode, intent);
     }
