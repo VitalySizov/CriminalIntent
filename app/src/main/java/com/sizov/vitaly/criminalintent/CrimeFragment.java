@@ -11,6 +11,7 @@ import android.provider.ContactsContract;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.app.ShareCompat;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -95,7 +96,7 @@ public class CrimeFragment extends Fragment {
     @Nullable
     @Override
     // Заполнение разметки fragment_crime
-    public View onCreateView(LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, @Nullable final ViewGroup container, @Nullable Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_crime, container, false);
 
         mTitleField = (EditText) v.findViewById(R.id.crime_title);
@@ -162,12 +163,22 @@ public class CrimeFragment extends Fragment {
         mReportButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType("text/plain");
-                intent.putExtra(Intent.EXTRA_TEXT, getCrimeReport());
-                intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject));
-                intent.createChooser(intent, getString(R.string.send_report));
-                startActivity(intent);
+
+                // Построение интента с помощью ShareCompat
+                Intent intent = ShareCompat.IntentBuilder.from(getActivity())
+                        .setType("text/plain")
+                        .setText(getCrimeReport())
+                        .setSubject(getString(R.string.crime_report_subject))
+                        .setChooserTitle(getString(R.string.send_report))
+                        .createChooserIntent();
+                        startActivity(intent);
+
+//                Intent intent = new Intent(Intent.ACTION_SEND);
+//                intent.setType("text/plain");
+//                intent.putExtra(Intent.EXTRA_TEXT, getCrimeReport());
+//                intent.putExtra(Intent.EXTRA_SUBJECT, getString(R.string.crime_report_subject));
+//                intent.createChooser(intent, getString(R.string.send_report));
+//                startActivity(intent);
             }
         });
 
