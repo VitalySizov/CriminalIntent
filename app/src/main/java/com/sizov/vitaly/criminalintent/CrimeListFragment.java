@@ -1,9 +1,12 @@
 package com.sizov.vitaly.criminalintent;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -16,6 +19,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.List;
 
@@ -29,6 +33,7 @@ public class CrimeListFragment extends Fragment {
     private boolean mSubtitleVisible;
     private static final String TAG = "CrimeListFragment";
     private static final String SAVED_SUBTITLE_VISIBLE = "subtitle";
+    private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 3;
 
     private int mCurrentPosition;
 
@@ -55,6 +60,17 @@ public class CrimeListFragment extends Fragment {
         if (savedInstanceState != null) {
             mSubtitleVisible = savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBLE);
         }
+
+        // Проверка наличия разрешения на чтение контактов в манифесте
+        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
+
+        } else {
+
+            if (shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)) {
+                Toast.makeText(getActivity(), "Need to permission", Toast.LENGTH_LONG).show();
+            }
+        }
+        requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_CONTACTS);
 
         updateUI(mCurrentPosition);
         return view;

@@ -1,13 +1,12 @@
 package com.sizov.vitaly.criminalintent;
-
 import android.app.Activity;
 import android.content.Intent;
-
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -25,6 +24,7 @@ import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.text.format.DateFormat;
+import android.widget.Toast;
 import java.util.Date;
 import java.util.UUID;
 
@@ -36,6 +36,7 @@ public class CrimeFragment extends Fragment {
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME = 1;
     private static final int REQUEST_CONTACT = 2;
+    private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 100;
 
     private Crime mCrime;
     private EditText mTitleField;
@@ -44,6 +45,7 @@ public class CrimeFragment extends Fragment {
     private CheckBox mSolvedCheckBox;
     private Button mReportButton;
     private Button mSuspectButton;
+    private Button mCallSuspectButton;
 
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
@@ -62,6 +64,7 @@ public class CrimeFragment extends Fragment {
         // Получение идентификатора преступления из аргументов
         UUID crimeId = (UUID) getArguments().getSerializable(ARG_CRIME_ID);
         mCrime = CrimeLab.get(getActivity()).getCrime(crimeId);
+
     }
 
     // Запись обновлений
@@ -90,6 +93,23 @@ public class CrimeFragment extends Fragment {
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+
+        if (requestCode == PERMISSIONS_REQUEST_READ_CONTACTS) {
+
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                mCallSuspectButton.setVisibility(View.VISIBLE);
+
+            } else {
+                Toast.makeText(getActivity(), "permission was not granted", Toast.LENGTH_LONG).show();
+            }
+        } else {
+
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
     }
 
@@ -182,6 +202,36 @@ public class CrimeFragment extends Fragment {
             }
         });
 
+
+        mCallSuspectButton = (Button) v.findViewById(R.id.crime_call);
+        mCallSuspectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Uri contentUri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+                String selectClause = ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?";
+
+                String[] fields = {ContactsContract.CommonDataKinds.Phone.NUMBER};
+                String[] selectParams = {Long.toString(mCrime.getContactId())};
+
+                Cursor cursor = getActivity().getContentResolver().query(contentUri, fields, selectClause, selectParams, null);
+
+                if (cursor != null && cursor.getCount() > 0) {
+                    try {
+                        cursor.moveToFirst();
+                        String number = cursor.getString(0);
+                        Uri phoneNumber = Uri.parse("tel:" + number);
+                        Intent intent = new Intent(Intent.ACTION_DIAL, phoneNumber);
+                        startActivity(intent);
+                    } finally {
+                        cursor.close();
+                    }
+                } else {
+                    Toast.makeText(getActivity(), "No suspect selected", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
         // Неявный интент на выбор контакта
         final Intent pickContact = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
         mSuspectButton = (Button)v.findViewById(R.id.crime_suspect);
@@ -240,7 +290,7 @@ public class CrimeFragment extends Fragment {
             Uri contactUri = data.getData();
 
             String[] queryFields = new String[] {
-                    ContactsContract.Contacts.DISPLAY_NAME
+                    ContactsContract.Contacts.DISPLAY_NAME, ContactsContract.Contacts._ID
             };
 
             // Выполнение запроса - contactUri здесь выполняет функции
@@ -254,10 +304,12 @@ public class CrimeFragment extends Fragment {
                 if (c.getCount() == 0) {
                     return;
                 }
-                // Извлечение первого столбца данных - имени подозреваемого
+                // Извлечение данных из столбцов
                 c.moveToFirst();
                 String suspect = c.getString(0);
+                long contactId = c.getLong(1);
                 mCrime.setSuspect(suspect);
+                mCrime.setContactId(contactId);
                 mSuspectButton.setText(suspect);
             } finally {
                 c.close();
