@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Point;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -21,6 +22,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
@@ -57,6 +59,7 @@ public class CrimeFragment extends Fragment {
     private Button mCallSuspectButton;
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
+    private Point mPhotoViewSize;
 
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
@@ -300,6 +303,13 @@ public class CrimeFragment extends Fragment {
             }
         });
 
+        mPhotoView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                updatePhotoView();
+            }
+        });
+
         updatePhotoView();
 
         return v;
@@ -397,11 +407,14 @@ public class CrimeFragment extends Fragment {
 
     // Обновление mPhotoView
     private void updatePhotoView() {
-        if (mPhotoView == null || !mPhotoFile.exists()) {
-            mPhotoView.setImageDrawable(null);
+
+        if ((mPhotoFile == null) || !mPhotoFile.exists()) {
+            mPhotoView.setImageBitmap(null);
+            mPhotoView.setClickable(false);
         } else {
-            Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), getActivity());
+            Bitmap bitmap = PictureUtils.getScaledBitmap(mPhotoFile.getPath(), mPhotoView.getWidth(), mPhotoView.getHeight());
             mPhotoView.setImageBitmap(bitmap);
+            mPhotoView.setClickable(true);
         }
     }
 }
