@@ -39,6 +39,7 @@ public class CrimeFragment extends Fragment {
     private static final String ARG_CRIME_ID = "crime_id";
     private static final String DIALOG_DATE = "DialogDate";
     private static final String DIALOG_TIME = "DialogTime";
+    private static final String DIALOG_PHOTO = "DialogSuspect";
     private static final int REQUEST_DATE = 0;
     private static final int REQUEST_TIME = 1;
     private static final int REQUEST_CONTACT = 2;
@@ -284,7 +285,21 @@ public class CrimeFragment extends Fragment {
             }
         });
 
+        // Открытие увеличенной версии фото
         mPhotoView = (ImageView) v.findViewById(R.id.crime_photo);
+        mPhotoView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (mPhotoFile != null && mPhotoFile.exists()) {
+                    FragmentManager manager = getFragmentManager();
+                    PhotoDialogFragment.newInstance(mPhotoFile).show(manager, DIALOG_PHOTO);
+                } else {
+                    Toast.makeText(getActivity(), "Take a photo !!!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
         updatePhotoView();
 
         return v;
