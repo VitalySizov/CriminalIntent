@@ -1,5 +1,6 @@
 package com.sizov.vitaly.criminalintent;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -60,6 +61,11 @@ public class CrimeFragment extends Fragment {
     private ImageButton mPhotoButton;
     private ImageView mPhotoView;
     private Point mPhotoViewSize;
+    private Callbacks mCallbacks;
+
+    public interface Callbacks {
+        void onCrimeUpdated(Crime crime);
+    }
 
     public static CrimeFragment newInstance(UUID crimeId) {
         Bundle args = new Bundle();
@@ -68,6 +74,12 @@ public class CrimeFragment extends Fragment {
         CrimeFragment fragment = new CrimeFragment();
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mCallbacks = (Callbacks) activity;
     }
 
     @Override
@@ -91,6 +103,12 @@ public class CrimeFragment extends Fragment {
         CrimeLab.get(getActivity()).updateCrime(mCrime);
     }
 
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
+
     // Заполнение ресурса меню
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -105,6 +123,7 @@ public class CrimeFragment extends Fragment {
             case R.id.menu_item_delete_crime:
                 UUID crimeId = mCrime.getId();
                 CrimeLab.get(getActivity()).deleteCrime(crimeId);
+                updateCrime();
                 getActivity().finish();
                 return true;
             default:
@@ -146,6 +165,7 @@ public class CrimeFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 mCrime.setTitle(s.toString());
+                updateCrime();
             }
 
             @Override
@@ -177,6 +197,7 @@ public class CrimeFragment extends Fragment {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 // Назначение раскрытия преступления
                 mCrime.setSolved(isChecked);
+                updateCrime();
             }
         });
 
@@ -323,6 +344,11 @@ public class CrimeFragment extends Fragment {
         mDateButton.setText(DateFormat.format("EEE, MMM d, yyyy", mCrime.getDate()));
     }
 
+    private void updateCrime() {
+        CrimeLab.get(getActivity()).updateCrime(mCrime);
+        mCallbacks.onCrimeUpdated(mCrime);
+    }
+
     // Реакция на получение данных от диалогового окна
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -333,6 +359,7 @@ public class CrimeFragment extends Fragment {
         if (requestCode == REQUEST_DATE) {
             Date date = (Date) data.getSerializableExtra(DatePickerFragment.EXTRA_DATE);
             mCrime.setDate(date);
+            updateCrime();
             updateDate();
         }
 
@@ -343,6 +370,7 @@ public class CrimeFragment extends Fragment {
         }
 
         else if (requestCode == REQUEST_PHOTO) {
+            updateCrime();
             updatePhotoView();
         }
 
@@ -373,6 +401,7 @@ public class CrimeFragment extends Fragment {
                 String suspect = c.getString(0);
                 long contactId = c.getLong(1);
                 mCrime.setSuspect(suspect);
+                updateCrime();
                 mCrime.setContactId(contactId);
                 mSuspectButton.setText(suspect);
             } finally {

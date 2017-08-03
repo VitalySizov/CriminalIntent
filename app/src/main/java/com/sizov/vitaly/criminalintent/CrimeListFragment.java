@@ -1,6 +1,8 @@
 package com.sizov.vitaly.criminalintent;
 
 import android.Manifest;
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -34,8 +36,19 @@ public class CrimeListFragment extends Fragment {
     private static final String TAG = "CrimeListFragment";
     private static final String SAVED_SUBTITLE_VISIBLE = "subtitle";
     private static final int PERMISSIONS_REQUEST_READ_CONTACTS = 3;
+    private Callbacks mCallbacks;
 
     private int mCurrentPosition;
+
+    public interface Callbacks {
+        void onCrimeSelected(Crime crime);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        mCallbacks = (Callbacks) activity;
+    }
 
     // Получение обратных вызовов командного меню
     @Override
@@ -55,7 +68,7 @@ public class CrimeListFragment extends Fragment {
         mCrimeEmptyTextView = (TextView)view.findViewById(R.id.empty_list);
         mCrimeAddButton = (Button)view.findViewById(R.id.item_new_crime);
 
-        updateUI(mCurrentPosition);
+        updateUI();
 
         if (savedInstanceState != null) {
             mSubtitleVisible = savedInstanceState.getBoolean(SAVED_SUBTITLE_VISIBLE);
@@ -72,14 +85,14 @@ public class CrimeListFragment extends Fragment {
         }
         requestPermissions(new String[]{Manifest.permission.READ_CONTACTS}, PERMISSIONS_REQUEST_READ_CONTACTS);
 
-        updateUI(mCurrentPosition);
+        updateUI();
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        updateUI(mCurrentPosition);
+        updateUI();
     }
 
     // Сохранение признака видмости заголовка
@@ -89,7 +102,13 @@ public class CrimeListFragment extends Fragment {
         outState.putBoolean(SAVED_SUBTITLE_VISIBLE, mSubtitleVisible);
     }
 
-    private void updateUI(int position) {
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        mCallbacks = null;
+    }
+
+    public void updateUI() {
         CrimeLab crimeLab = CrimeLab.get(getActivity());
         final List<Crime> crimes = crimeLab.getCrimes();
 
@@ -111,7 +130,10 @@ public class CrimeListFragment extends Fragment {
             mCrimeAddButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    addCrime();
+                    Crime crime = new Crime();
+                    CrimeLab.get(getActivity()).addCrime(crime);
+                    updateUI();
+                    mCallbacks.onCrimeSelected(crime);
                 }
             });
         }
@@ -147,8 +169,7 @@ public class CrimeListFragment extends Fragment {
         @Override
         public void onClick(View v) {
             mCurrentPosition = getAdapterPosition();
-            Intent intent = CrimePagerActivity.newIntent(getActivity(), mCrime.getId());
-            startActivity(intent);
+            mCallbacks.onCrimeSelected(mCrime);
         }
     }
 
@@ -207,7 +228,10 @@ public class CrimeListFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_item_new_crime:
-                addCrime();
+                Crime crime = new Crime();
+                CrimeLab.get(getActivity()).addCrime(crime);
+                updateUI();
+                mCallbacks.onCrimeSelected(crime);
                 return true;
             case R.id.menu_item_show_subtitle:
                 mSubtitleVisible = !mSubtitleVisible;
@@ -217,13 +241,6 @@ public class CrimeListFragment extends Fragment {
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    private void addCrime() {
-        Crime crime = new Crime();
-        CrimeLab.get(getActivity()).addCrime(crime);
-        Intent intent = CrimePagerActivity.newIntent(getActivity(), crime.getId());
-        startActivity(intent);
     }
 
     // Назначение подзаголовка панели инструментов
